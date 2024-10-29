@@ -5,6 +5,9 @@ from transformers import pipeline
 pipe = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
 
 # %%
-
-print(pipe("I am so happy!"))
+print("Emotion classification:")
+input_text = input("Enter a text: ")
+while input_text != "":
+    print(pipe(input_text))
+    input_text = input("Enter a text: ")
 # %%
