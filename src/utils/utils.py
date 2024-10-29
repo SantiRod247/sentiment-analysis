@@ -1,12 +1,15 @@
-# %%
-from transformers import pipeline
-classifier = pipeline('sentiment-analysis')
-print(classifier('We are very happy to show you the 🤗 Transformers library.'))
-
-# %%
-results = classifier(["We are very happy to show you the 🤗 Transformers library.",
-            "We hope you don't hate it.", "This is a piece of shit.", "I love you", "it was amazing"], num_workers=2)
-for result in results:
-    print(f"label: {result['label']}, with score: {round(result['score'], 4)}")
-# %%
-
+def get_highest_probability(predictions: dict) -> tuple[str, float]:
+    """
+    Takes a dictionary of predictions and returns the label with the highest probability
+    
+    Args:
+        predictions (dict): Dictionary with labels and their probabilities
+        
+    Returns:
+        tuple[str, float]: Tuple with (label, probability) of the highest value
+    """
+    if not predictions:
+        return ("", 0.0)
+        
+    max_label = max(predictions.items(), key=lambda x: x[1])
+    return max_label

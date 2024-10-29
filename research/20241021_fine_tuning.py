@@ -7,9 +7,8 @@ from datasets import load_from_disk
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
-
 # %%
-# if the dataset is not in the disk, download it
+# If the dataset is not in the disk, download it
 if not os.path.exists("../data"):
     print("Downloading the dataset...")
     dataset = load_dataset("dair-ai/emotion")
@@ -18,16 +17,16 @@ if not os.path.exists("../data"):
 print("Completed.")
 
 # %%
-#load the dataset from the disk
+# Load the dataset from disk
 try:
     dataset = load_from_disk("../data")
-    print("El dataset se cargó correctamente desde el disco.")
+    print("Dataset loaded successfully from disk.")
     print(dataset)
 except Exception as e:
-    print(f"Error al cargar el dataset: {e}")
+    print(f"Error loading dataset: {e}")
 
 # %%
-# show a bit of dataset
+# Show dataset information
 labels = dataset['train'].features['label'].names
 print(labels)
 
@@ -50,24 +49,20 @@ counts = list(label_counts.values())
 # Create the circular chart
 plt.figure(figsize=(12, 8))
 wedges, texts, autotexts = plt.pie(counts, autopct='%1.1f%%', startangle=90)
-# wedges, texts and autotexts are values for the pie chart
 
 # Add a legend with the names of the emotions and the counts
 legend_labels = [f'{label}: {count}' for label, count in zip(labels, counts)]
-#zip creates a list of tuples, where each tuple contains an element from each of the two lists
 plt.legend(wedges, legend_labels, title="Emotions", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
 
 plt.title('Distribution of Emotions in the Dataset')
-plt.axis('equal')  # this ensures that the chart is circular
+plt.axis('equal')  # This ensures that the chart is circular
 
 # Adjust the layout to avoid overlaps
 plt.tight_layout()
 plt.show()
 
-
 # %%
 # Tokenizer and model
-
 from transformers import BertForSequenceClassification, BertTokenizer
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
