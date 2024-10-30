@@ -1,15 +1,6 @@
-from api_models.BERT_tiny_emotion_intent import BERT_tiny_emotion_intent as BERT_tiny_api
-from api_models.bert_base_uncased_emotion import bert_base_uncased_emotion as bert_base_api
-from api_models.Albert_base_v2_emotion import Albert_base_v2_emotion as albert_api
-from api_models.Distilbert_base_uncased_emotion import Distilbert_base_uncased_emotion as distilbert_api
-
-from direct_models.BERT_tiny_emotion_intent import BERT_tiny_emotion_intent as BERT_tiny_direct
-from direct_models.bert_base_uncased_emotion import bert_base_uncased_emotion as bert_base_direct
-from direct_models.Albert_base_v2_emotion import Albert_base_v2_emotion as albert_direct
-from direct_models.Distilbert_base_uncased_emotion import Distilbert_base_uncased_emotion as distilbert_direct
-
+from api_models.api_models import EmotionModel
+from direct_models.direct_models import EmotionModelDirect
 from utils.utils import get_highest_probability
-from typing import Type, Dict, Union, Tuple
 
 def get_model_choice() -> int:
     print("\nSelect model:")
@@ -39,45 +30,42 @@ def main() -> None:
     # Get text to analyze
     text: str = input("\nEnter text to analyze: ")
     
-    # Get model selection
     model_choice: int = get_model_choice()
-    
-    # Get method selection
     method_choice: int = get_method_choice()
     
-    # Dictionary of available models
-    models: Dict[Tuple[int, int], Type] = {
-        (1, 1): BERT_tiny_api,
-        (1, 2): BERT_tiny_direct,
-        (2, 1): bert_base_api,
-        (2, 2): bert_base_direct,
-        (3, 1): albert_api,
-        (3, 2): albert_direct,
-        (4, 1): distilbert_api,
-        (4, 2): distilbert_direct
+    model_names = {
+        1: "bert_tiny",
+        2: "bert_base",
+        3: "albert",
+        4: "distilbert"
     }
     
-    # Initialize selected model
-    model_class = models[(model_choice, method_choice)]
-    model = model_class()
-    
-    # Make prediction
-    result = model.predict(text)
-    
-    # Show results
-    print("\nResults:")
-    if method_choice == 1:  # API
-        print(f"Prediction: {result}")
-    else:  # Direct
-        print(f"Predicted emotion: {result['label']}")
-        print(f"Confidence: {result['confidence']:.4f}")
-        print("\nAll predictions:")
-        for emotion, prob in result['all_predictions'].items():
-            print(f"{emotion}: {prob:.4f}")
+    try:
+        model_name = model_names[model_choice]
         
-        # Add highest probability analysis
-        max_label, max_prob = get_highest_probability(result['all_predictions'])
-        print(f"\nEmotion with highest probability: {max_label} ({max_prob:.4f})")
+        if method_choice == 1:
+            model = EmotionModel.create(model_name)
+        else:
+            model = EmotionModelDirect.create(model_name)
+            
+        result = model.predict(text)
+        
+        print("\nResults:")
+        if method_choice == 1:  # API
+            print(f"Prediction: {result}")
+        else:  # Direct
+            print(f"Predicted emotion: {result['label']}")
+            print(f"Confidence: {result['confidence']:.4f}")
+            print("\nAll predictions:")
+            for emotion, prob in result['all_predictions'].items():
+                print(f"{emotion}: {prob:.4f}")
+            
+            # Add highest probability analysis
+            max_label, max_prob = get_highest_probability(result['all_predictions'])
+            print(f"\nEmotion with highest probability: {max_label} ({max_prob:.4f})")
+            
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
