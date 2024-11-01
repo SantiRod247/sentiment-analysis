@@ -1,11 +1,11 @@
 # %% 
 import os
-import torch
+## import torch
 from datasets import load_dataset
 from datasets import load_from_disk
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
-print(device)
+## device = "cuda" if torch.cuda.is_available() else "cpu"
+## print(device)
 
 # %%
 # If the dataset is not in the disk, download it
