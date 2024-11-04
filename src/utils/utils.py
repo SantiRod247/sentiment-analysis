@@ -29,7 +29,7 @@ def get_model_choice() -> int:
 
 def get_method_choice() -> int:
     print("\nSelect method:")
-    print("1. API (pipeline)")
+    print("1. Pipeline")
     print("2. Direct (AutoTokenizer + AutoModel)")
     
     while True:

@@ -1,19 +1,16 @@
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+from transformers import (
+    pipeline as tf_pipeline,
+    AutoTokenizer as Tokenizer,
+    AutoModelForSequenceClassification as AutoModelClassifier
+)
 from typing import List, Dict, Union, Literal
-from enum import Enum
-
-class ModelType(Enum):
-    BERT_TINY = "gokuls/BERT-tiny-emotion-intent"
-    BERT_BASE = "nateraw/bert-base-uncased-emotion"
-    ALBERT = "bhadresh-savani/albert-base-v2-emotion"
-    DISTILBERT = "bhadresh-savani/distilbert-base-uncased-emotion"
 
 class EmotionModel:
     """
     A unified class for handling different emotion classification models
-    using both pipeline API and direct model loading approaches
+    using both pipeline and direct model loading approaches
     """
-    def __init__(self, model_number: int, method: Literal[0, 1] = 0) -> None:
+    def __init__(self, model_number: int, method: Literal["pipeline", "direct"] = "pipeline") -> None:
         """
         Initialize the emotion model with the specified type and method
         
@@ -23,32 +20,32 @@ class EmotionModel:
                 2: BERT base uncased emotion
                 3: Albert base v2 emotion
                 4: Distilbert base uncased emotion
-            method (int): Method to use for predictions (0: api, 1: direct)
+            method (str): Method to use for predictions ("pipeline" or "direct")
         
         Raises:
             ValueError: If model_number is invalid or method is not recognized
         """
-        # Model number to type mapping
-        model_map = {
-            1: ModelType.BERT_TINY,
-            2: ModelType.BERT_BASE,
-            3: ModelType.ALBERT,
-            4: ModelType.DISTILBERT
-        }
+        # array of model names
+        models = [
+            "gokuls/BERT-tiny-emotion-intent",
+            "nateraw/bert-base-uncased-emotion",
+            "bhadresh-savani/albert-base-v2-emotion",
+            "bhadresh-savani/distilbert-base-uncased-emotion"
+        ]
         
-        if model_number not in model_map:
+        if not 1 <= model_number <= len(models):
             raise ValueError("Model number must be between 1 and 4")
         
-        self.model_type = model_map[model_number]
+        self.model_type = models[model_number - 1]
         self.method = method
         
-        if method == 0:
-            self.pipe = pipeline("text-classification", model=self.model_type.value)
-        elif method == 1:
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_type.value)
-            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_type.value)
+        if method == "pipeline":
+            self.pipe = tf_pipeline("text-classification", model=self.model_type)
+        elif method == "direct":
+            self.tokenizer = Tokenizer.from_pretrained(self.model_type)
+            self.model = AutoModelClassifier.from_pretrained(self.model_type)
         else:
-            raise ValueError('Method must be either 0 (api) or 1 (direct)')
+            raise ValueError('Method must be either "pipeline" or "direct"')
 
     def predict(self, text: str) -> Union[List[Dict[str, Union[str, float]]], 
                                         Dict[str, Union[str, float, Dict[str, float]]]]:
@@ -60,10 +57,10 @@ class EmotionModel:
             
         Returns:
             Union[List[Dict], Dict]: Prediction results. Format depends on method:
-                - 0 (API): List of predictions with labels and scores
-                - 1 (Direct): Dictionary with label, confidence, and all probabilities
+                - "pipeline": List of predictions with labels and scores
+                - "direct": Dictionary with label, confidence, and all probabilities
         """
-        if self.method == 0:
+        if self.method == "pipeline":
             return self.pipe(text)
         else:
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
