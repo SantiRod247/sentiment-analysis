@@ -14,7 +14,7 @@ def main() -> None:
         result = model.predict(text)
         
         print("\nResults:")
-        if method_choice == 1:  # API
+        if method_choice == 1:  # Pipeline
             print(f"Prediction: {result}")
         else:  # Direct
             print(f"Predicted emotion: {result['label']}")
