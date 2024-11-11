@@ -1,6 +1,8 @@
-from models.emotion_models import EmotionModel, ModelType
-from utils.utils import get_highest_probability
-from typing import Literal
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.models.emotion_models import EmotionModel
 
 model = EmotionModel("BERT_BASE", "pipeline")
 result = model.predict("I am so happy!")
