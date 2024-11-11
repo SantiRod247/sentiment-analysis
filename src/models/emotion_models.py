@@ -21,7 +21,7 @@ class EmotionModel:
     def __init__(self, 
                 model_name: Literal["BERT_TINY", "BERT_BASE", "ALBERT", "DISTILBERT"] = "BERT_BASE", 
                 method: Literal["pipeline", "direct"] = "pipeline",
-                use_gpu: bool = False):
+                use_gpu: bool = True):
         """
         Initialize the emotion model with the specified type and method
         
@@ -36,7 +36,7 @@ class EmotionModel:
                 Options:
                 - "pipeline": Easier to use, less flexible
                 - "direct": More control over the model
-            use_gpu (bool, optional): Whether to use GPU if available. Defaults to False.
+            use_gpu (bool, optional): Whether to use GPU if available. Defaults to True.
                 If True but no GPU is available, will fallback to CPU.
         """
         self.model_type = ModelType[model_name].value
@@ -63,10 +63,11 @@ class EmotionModel:
                 - method (str): Method used for prediction
         """
         if self.method == "pipeline":
-            return {**self.pipe(text)[0], "method": self.method}
+            result = self.pipe(text)[0]
+            return {"label": result["label"], "score": result["score"], "method": self.method}
         else:
             predicted = self._get_prediction_and_score(text)
-            return {**predicted, "method": self.method}
+            return {"label": predicted["label"], "score": predicted["score"], "method": self.method}
         
     def _get_prediction_and_score(self, text: str) -> Dict[str, Union[str, float]]:
         """
@@ -106,15 +107,3 @@ class EmotionModel:
             "ALBERT": "Albert base v2 emotion",
             "DISTILBERT": "Distilbert base uncased emotion"
         }
-
-    def __del__(self):
-        """
-        Cleanup method to free resources
-        """
-        if hasattr(self, 'model'):
-            del self.model
-        if hasattr(self, 'tokenizer'):
-            del self.tokenizer
-        if hasattr(self, 'pipe'):
-            del self.pipe
-  
