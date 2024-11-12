@@ -1,8 +1,7 @@
 import pandas as pd
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Union, Optional, Literal
 from pathlib import Path
-from api_models.api_models import EmotionModel
-from direct_models.direct_models import EmotionModelDirect
+from models.emotion_models import EmotionModel
 
 class EmotionAnalyzer:
     """
@@ -16,46 +15,33 @@ class EmotionAnalyzer:
     def __init__(
         self, 
         csv_path: Union[str, Path], 
-        model_number: int = 2,  # Default is BERT base
-        use_direct: bool = False
+        model_name: Literal["BERT_TINY", "BERT_BASE", "ALBERT", "DISTILBERT"] = "BERT_BASE", 
+        method: Literal["pipeline", "direct"] = "pipeline",
+        use_gpu: bool = True
     ) -> None:
         """
         Initialize the emotion analyzer, default model is BERT base and use API
         
         Args:
             csv_path (Union[str, Path]): Path to the CSV file with phrases
-            model_number (int): Number of the model to use (1-4)
-                1: BERT tiny emotion intent
-                2: BERT base uncased emotion
-                3: Albert base v2 emotion
-                4: Distilbert base uncased emotion
-            use_direct (bool): Whether to use direct model or API
+            model_name (str, optional): Name of the model to use. Defaults to "BERT_BASE".
+                options: "BERT_TINY", "BERT_BASE", "ALBERT", "DISTILBERT"
+            method (str, optional): Method to use for predictions. Defaults to "pipeline".
+                options: "pipeline", "direct"
+            use_gpu (bool, optional): Whether to use GPU if available. Defaults to True.
+                If True but no GPU is available, will fallback to CPU.
         
         Raises:
-            ValueError: If model number is invalid (must be 1-4)
             FileNotFoundError: If CSV file doesn't exist
         """
-        csv_path = "../" + csv_path
-        self.csv_path = Path(csv_path)
-        if not self.csv_path.exists():
-            raise FileNotFoundError(f"CSV file not found: {self.csv_path}")
         
-        model_map = {
-            1: "bert_tiny",      
-            2: "bert_base",      
-            3: "albert",         
-            4: "distilbert"      
-        }
+        csv_path = Path(csv_path)
+        if not csv_path.exists():
+            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+        self.csv_path = csv_path
+
+        self.model = EmotionModel(model_name, method, use_gpu)
         
-        if model_number not in model_map:
-            raise ValueError("Model number must be between 1 and 4")
-            
-        model_name = model_map[model_number]
-        if use_direct:
-            self.model = EmotionModelDirect.create(model_name)
-        else:
-            self.model = EmotionModel.create(model_name)
-            
         self.results: Optional[List[Dict]] = None
 
     def read_csv(self) -> pd.DataFrame:
@@ -81,7 +67,7 @@ class EmotionAnalyzer:
             # Try to use first column if no 'phrase' column
             df = pd.read_csv(self.csv_path, header=None, names=['phrase'])
         return df
-
+#TODO: REVIEW
     def analyze_phrases(self) -> List[Dict]:
         """
         Read phrases from CSV file and get emotion predictions
@@ -114,25 +100,9 @@ class EmotionAnalyzer:
                 print(f"Processed {idx + 1}/{total_phrases} phrases")
 
         self.results = results
-        print(results)
         return results
 
-    def save_results(self, output_path: Union[str, Path]) -> None:
-        """
-        Save analysis results to a CSV file
-        
-        Args:
-            output_path (Union[str, Path]): Path where results will be saved
-        """
-        if self.results is None:
-            self.results = self.analyze_phrases()
-            
-        output_path = Path(output_path)
-        output_df = pd.DataFrame(self.results)
-        output_df.to_csv(output_path, index=False)
-        print(f"Results saved to: {output_path}")
-
-    def print_results(self, limit: Optional[int] = None) -> None:
+    def print_results(self, limit: Optional[int] = None):
         """
         Print emotion analysis results to console
         
@@ -148,16 +118,25 @@ class EmotionAnalyzer:
             print("\n" + "="*50)
             print(f"Phrase: {result['phrase']}")
             print(f"Status: {result['status']}")
-            if result['prediction']:
-                if isinstance(result['prediction'], dict):
-                    print(f"Emotion: {result['prediction']['label']}")
-                    print(f"Confidence: {result['prediction']['confidence']:.4f}")
-                    print("\nAll probabilities:")
-                    for emotion, prob in result['prediction']['all_predictions'].items():
-                        print(f"{emotion}: {prob:.4f}")
-                else:
-                    print(f"Prediction: {result['prediction']}")
-
+            if result['prediction'] :
+                print(f"Label: {result['prediction']['label']}")
+                print(f"Score: {result['prediction']['score']:.4f}")
+#FIXME
+    def save_results(self, output_path: Union[str, Path]):
+        """
+        Save analysis results to a CSV file
+        
+        Args:
+            output_path (Union[str, Path]): Path where results will be saved
+        """
+        if self.results is None:
+            self.results = self.analyze_phrases()
+            
+        output_path = Path(output_path)
+        output_df = pd.DataFrame(self.results)
+        output_df.to_csv(output_path, index=False)
+        print(f"Results saved to: {output_path}")
+#FIXME
     def get_statistics(self) -> Dict[str, Union[int, float, Dict]]:
         """
         Calculate statistics about the analyzed phrases

@@ -7,6 +7,12 @@ from transformers import (
 from typing import Dict, Union, Literal
 from enum import Enum
 
+DictPredict = Dict[Literal["label", "score", "method"], Union[str, float]]
+# --------------------------------
+# {'label': 'joy', 'score': 0.9960781931877136, 'method': 'pipeline'}
+# --------------------------------
+# {'label': 'joy', 'score': 0.9960781931877136, 'method': 'direct'}
+
 class ModelType(Enum):
     BERT_TINY = "gokuls/BERT-tiny-emotion-intent"
     BERT_BASE = "nateraw/bert-base-uncased-emotion"
@@ -49,7 +55,7 @@ class EmotionModel:
             self.tokenizer = Tokenizer.from_pretrained(self.model_type)
             self.model = AutoModelClassifier.from_pretrained(self.model_type).to(self.device)
 
-    def predict(self, text: str) -> Dict[str, Union[str, float]]:
+    def predict(self, text: str) -> DictPredict:
         """
         Predict emotions in the given text
         
@@ -57,7 +63,7 @@ class EmotionModel:
             text (str): The text to analyze
             
         Returns:
-            Dict[str, Union[str, float]]: Dictionary containing:
+            DictPredict: Dictionary containing:
                 - label (str): Predicted emotion
                 - score (float): Confidence score
                 - method (str): Method used for prediction
