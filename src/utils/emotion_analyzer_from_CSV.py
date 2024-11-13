@@ -43,7 +43,7 @@ class EmotionAnalyzer:
         self.model = EmotionModel(model_name, method, use_gpu)
         
         self.results: Optional[List[Dict]] = None
-
+#TODO: REVIEW
     def read_csv(self) -> pd.DataFrame:
         """
         Read the CSV file and validate its contents
@@ -65,7 +65,7 @@ class EmotionAnalyzer:
             
         if 'phrase' not in df.columns:
             # Try to use first column if no 'phrase' column
-            df = pd.read_csv(self.csv_path, header=None, names=['phrase'])
+            df = pd.read_csv(self.csv_path, quotechar='"', delimiter=',', engine='python')
         return df
 #TODO: REVIEW
     def analyze_phrases(self) -> List[Dict]:
