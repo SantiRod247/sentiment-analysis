@@ -12,6 +12,7 @@ class EmotionAnalyzer:
         3: Albert base v2 emotion
         4: Distilbert base uncased emotion
     """
+
     def __init__(
         self, 
         csv_path: Union[str, Path], 
@@ -43,7 +44,8 @@ class EmotionAnalyzer:
         self.model = EmotionModel(model_name, method, use_gpu)
         
         self.results: Optional[List[Dict]] = None
-#TODO: REVIEW
+
+    #TODO: REVIEW
     def read_csv(self) -> pd.DataFrame:
         """
         Read the CSV file and validate its contents
@@ -63,11 +65,12 @@ class EmotionAnalyzer:
         if df.empty:
             raise ValueError("CSV file is empty")
             
-        if 'phrase' not in df.columns:
-            # Try to use first column if no 'phrase' column
-            df = pd.read_csv(self.csv_path, quotechar='"', delimiter=',', engine='python')
-        return df
-#TODO: REVIEW
+        # Get the name of the first column
+        first_column_name = df.columns[0]
+        
+        return df, first_column_name
+    
+    #TODO: REVIEW AND TAKE CARE OF LIMITS
     def analyze_phrases(self) -> List[Dict]:
         """
         Read phrases from CSV file and get emotion predictions
@@ -75,12 +78,12 @@ class EmotionAnalyzer:
         Returns:
             List[Dict]: List of dictionaries with phrases and predictions
         """
-        df = self.read_csv()
+        df, column_name = self.read_csv()
         results = []
 
         total_phrases = len(df)
         for idx, row in df.iterrows():
-            phrase = row['phrase']
+            phrase = row[column_name]
             try:
                 prediction = self.model.predict(phrase)
                 results.append({
@@ -121,7 +124,8 @@ class EmotionAnalyzer:
             if result['prediction'] :
                 print(f"Label: {result['prediction']['label']}")
                 print(f"Score: {result['prediction']['score']:.4f}")
-#FIXME
+
+    #FIXME
     def save_results(self, output_path: Union[str, Path]):
         """
         Save analysis results to a CSV file
@@ -136,7 +140,8 @@ class EmotionAnalyzer:
         output_df = pd.DataFrame(self.results)
         output_df.to_csv(output_path, index=False)
         print(f"Results saved to: {output_path}")
-#FIXME
+
+    #FIXME
     def get_statistics(self) -> Dict[str, Union[int, float, Dict]]:
         """
         Calculate statistics about the analyzed phrases

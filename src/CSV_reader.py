@@ -3,7 +3,7 @@ from utils.emotion_analyzer_from_CSV import EmotionAnalyzer
 
 # analyzer with default model (bert_base)
 analyzer = EmotionAnalyzer(
-    csv_path="csv/comma.csv",  # CSV path
+    csv_path="csv/test.csv",  # CSV path
     model_name="BERT_BASE",
     method="direct",
     use_gpu=True
@@ -11,4 +11,4 @@ analyzer = EmotionAnalyzer(
 
 # %%
 # first 5 results
-analyzer.print_results(limit=10)
+analyzer.print_results(limit=50)
